@@ -94,7 +94,6 @@ public class SimpleSnmpClient {
     public List<List<String>> getTableAsStrings(OID[] oids) {
         TableUtils tUtils = new TableUtils(snmp, new DefaultPDUFactory());
 
-        @SuppressWarnings("unchecked")
         List<TableEvent> events = tUtils.getTable(getTarget(), oids, null, null);
 
         List<List<String>> list = new ArrayList<List<String>>();
