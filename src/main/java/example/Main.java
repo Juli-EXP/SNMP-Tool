@@ -1,3 +1,5 @@
+package example;
+
 import org.snmp4j.smi.OID;
 
 import java.io.IOException;
