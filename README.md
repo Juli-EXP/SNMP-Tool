@@ -14,7 +14,7 @@ IDE without gradle support, you have to run `gradle build` manually.
 
 ## Current goals
 - ~~Implement SNMP-Get~~
-- Implement SNMP-Set
+- ~~Implement SNMP-Set~~
 - Implement SNMP-Walk
 - Using different community strings
 
@@ -26,3 +26,4 @@ IDE without gradle support, you have to run `gradle build` manually.
 
 ## Working features
 - SNMP-Get
+- SNMP-Set
