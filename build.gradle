@@ -1,5 +1,6 @@
 plugins {
     id "java"
+    id "org.jetbrains.kotlin.jvm" version "1.4.20"
 }
 
 java{
@@ -15,6 +16,7 @@ dependencies {
     //The Java version 9 or higher. For now i'll use Java 8
     //implementation "org.snmp4j:snmp4j:3.4.4"
     implementation "org.snmp4j:snmp4j:2.8.6"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.0"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
