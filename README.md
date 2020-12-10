@@ -10,7 +10,8 @@ The tool uses Java, Kotlin and the [SNMP4j](https://www.snmp4j.org/) library.
 ## Setup
 The easiest way to work with this project is to use Intellij.  
 When you open Intellij, gradle should initiate the project automatically. If it does not start, or if you use another
-IDE without gradle support, you have to run `gradle build` manually.
+IDE without gradle support, you have to run `gradle build` manually.  
+You also have to run `gradle build` or `gradle jar` to create a jar that is located in `/build/libs`.
 
 ## Current goals
 - ~~Implement SNMP-Get~~

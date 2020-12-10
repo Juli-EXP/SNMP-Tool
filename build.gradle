@@ -3,7 +3,7 @@ plugins {
     id "org.jetbrains.kotlin.jvm" version "1.4.20"
 }
 
-java{
+java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
@@ -12,8 +12,14 @@ repositories {
     mavenCentral()
 }
 
-jar{
+jar {
+    manifest {
+        attributes "Main-Class": 'snmp.Main.kt'
+    }
 
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 dependencies {
