@@ -1,6 +1,6 @@
 # SNMP-Tool
 This is a simple SNMP tool for the school subject Systems and Networks.  
-The tool uses Java and the [SNMP4j](https://www.snmp4j.org/) library.
+The tool uses Java, Kotlin and the [SNMP4j](https://www.snmp4j.org/) library.
 
 ## Requirements
 - Java version 8 or higher
@@ -13,7 +13,7 @@ When you open Intellij, gradle should initiate the project automatically. If it 
 IDE without gradle support, you have to run `gradle build` manually.
 
 ## Current goals
-- Implement SNMP-Get
+- ~~Implement SNMP-Get~~
 - Implement SNMP-Set
 - Implement SNMP-Walk
 - Using different community strings
@@ -25,3 +25,4 @@ IDE without gradle support, you have to run `gradle build` manually.
 - Simple user interface
 
 ## Working features
+- SNMP-Get

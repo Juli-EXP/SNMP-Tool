@@ -3,7 +3,6 @@ package snmp
 import org.snmp4j.CommunityTarget
 import org.snmp4j.PDU
 import org.snmp4j.Snmp
-import org.snmp4j.event.ResponseEvent
 import org.snmp4j.mp.SnmpConstants
 import org.snmp4j.smi.*
 import org.snmp4j.transport.DefaultUdpTransportMapping
@@ -13,17 +12,15 @@ class SnmpClient(
     var snmpVersion: Int = SnmpConstants.version1,
     var community: String = "public"
 ) {
-    init {
-
-    }
 
     //variables/getter/setter-------------------------------------------------------------------------------------------
 
     //Adds the port to the end of the ip address
-    private var ipAddress = "$ipAddress/161"
+    var ipAddress = "$ipAddress/161"
         set(value) {
             field = "$value/161"
         }
+
 
 
     //Snmp-functions----------------------------------------------------------------------------------------------------
@@ -61,5 +58,9 @@ class SnmpClient(
         snmp.close()
 
         return result
+    }
+
+    fun setSnmp(oid: String){
+
     }
 }
