@@ -7,26 +7,32 @@ import org.snmp4j.event.ResponseEvent
 import org.snmp4j.mp.SnmpConstants
 import org.snmp4j.smi.*
 import org.snmp4j.transport.DefaultUdpTransportMapping
-import tornadofx.resizeCall
+import org.snmp4j.util.DefaultPDUFactory
+import org.snmp4j.util.TreeEvent
+import org.snmp4j.util.TreeUtils
 import java.lang.NumberFormatException
 import java.util.concurrent.TimeoutException
+import kotlin.collections.ArrayList
+import org.snmp4j.smi.VariableBinding
+
 
 class SnmpClient(
-    ipAddress: String = "127.0.0.1/161",
+    var ipAddress: String = "127.0.0.1",
     var snmpVersion: Int = SnmpConstants.version1,
     var community: String = "public"
 ) {
-
     //variables/getter/setter-------------------------------------------------------------------------------------------
 
-    //Adds the port to the end of the ip address
-    var ipAddress = ipAddress
-        set(value) {
-            field = "$value/161"
-        }
+    //Standard port for SNMP
+    var port = 161
 
+    //Last used OID; for getNext
+    private var lastOid: String = ""
+
+    //Simple function to print all infos about the class
     fun getInfo() {
         println("IP: $ipAddress")
+        println("Port: $port")
         println("Community: $community")
         println("Version: ${snmpVersion + 1}")
     }
@@ -34,12 +40,11 @@ class SnmpClient(
     //Snmp-functions----------------------------------------------------------------------------------------------------
 
     //Get function
-    fun getSnmp(oid: String): String {
+    fun get(oid: String): String {
         val snmp = Snmp(DefaultUdpTransportMapping())
         snmp.listen()
 
         val target = getTarget()
-
 
         val pdu = PDU()
         try {
@@ -54,7 +59,7 @@ class SnmpClient(
 
         val result = try {
             executeEvent(event)
-        } catch (e: TimeoutException){
+        } catch (e: TimeoutException) {
             e.printStackTrace()
             "Timeout"
         }
@@ -64,9 +69,8 @@ class SnmpClient(
         return result
     }
 
-
     //Set function
-    fun setSnmp(oid: String, value: String): String {
+    fun set(oid: String, value: String): String {
         val snmp = Snmp(DefaultUdpTransportMapping())
         snmp.listen()
 
@@ -85,7 +89,7 @@ class SnmpClient(
 
         val result = try {
             executeEvent(event)
-        } catch (e: TimeoutException){
+        } catch (e: TimeoutException) {
             e.printStackTrace()
             "Timeout, the value wasn't set"
         }
@@ -95,12 +99,62 @@ class SnmpClient(
         return result
     }
 
+    //Walk function, doesn't work at the moment
+    fun walk(startOid: String): ArrayList<String>? {
+        val snmp = Snmp(DefaultUdpTransportMapping())
+        snmp.listen()
+
+        val target = getTarget()
+
+        val results = ArrayList<String>()
+
+        val oid: OID
+        try {
+            oid = OID(startOid)
+        } catch (e: NumberFormatException) {
+            System.err.println("OID is not valid")
+            return null
+        }
+
+        val treeUtils = TreeUtils(snmp, DefaultPDUFactory())
+        val events = treeUtils.getSubtree(target, oid)
+
+        if (events == null || events.size == 0) {
+            System.err.println("No results were found")
+            return null
+        }
+
+        for (event: TreeEvent in events) {
+            print("le")
+
+            val varBindings = event.variableBindings
+            if (varBindings == null || varBindings.isEmpty()) {
+                continue
+            }
+
+            for (varBinding: VariableBinding? in varBindings) {
+                if (varBinding == null) {
+                    continue
+                }
+                println(
+                    varBinding.oid.toString() +
+                            " : " +
+                            varBinding.variable.syntaxString +
+                            " : " +
+                            varBinding.variable
+                )
+            }
+        }
+
+        return results
+    }
+
 
     //Create target
     private fun getTarget(): CommunityTarget {
         val target = CommunityTarget()
         target.community = OctetString(community)
-        target.address = UdpAddress(ipAddress)
+        target.address = UdpAddress("$ipAddress/$port")
         target.version = snmpVersion
         target.retries = 2
         target.timeout = 1500
