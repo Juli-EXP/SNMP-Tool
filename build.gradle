@@ -10,6 +10,11 @@ java {
 
 repositories {
     mavenCentral()
+
+    //extra maven repository for mibble
+    maven {
+        url "https://repo.opennms.org/maven2/"
+    }
 }
 
 jar {
@@ -25,8 +30,12 @@ jar {
 dependencies {
     //The Java version 9 or higher. For now i'll use Java 8
     //implementation "org.snmp4j:snmp4j:3.4.4"
-    implementation "org.snmp4j:snmp4j:2.8.6"
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "no.tornado:tornadofx:1.7.20"
+
+    implementation "org.snmp4j:snmp4j:2.8.6"
+    implementation "net.percederberg.mibble:mibble:2.9.3"
+
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.0"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"

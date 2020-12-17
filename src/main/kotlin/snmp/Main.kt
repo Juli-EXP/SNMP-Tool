@@ -1,16 +1,13 @@
 package snmp
 
-import javax.net.ssl.SNIHostName
-
 
 fun main() {
     val client = SnmpClient()
-
-    //test(client)
-    ui(client)
+    test2(client)
+    //ui(client)
 }
 
-fun test(client: SnmpClient) {
+fun test1(client: SnmpClient) {
     println(client.getSnmp("1.3.6.1.2.1.1.4.0"))
     println(client.setSnmp("1.3.6.1.2.1.1.4.0", "lampi"))
     println(client.getSnmp("1.3.6.1.2.1.1.4.0"))
@@ -19,7 +16,14 @@ fun test(client: SnmpClient) {
     println()
 
     println("6 Infos about ${client.ipAddress}:")
-    printAll(client)
+    getExample(client)
+}
+
+fun test2(client: SnmpClient) {
+    client.ipAddress = "192.168.1.1"
+    println(client.getSnmp("1.3.6.1.2.1.1.1.0"))
+    client.ipAddress = "192.168.1.2"
+    println(client.getSnmp("1.3.6.1.2.1.1.1.0"))
 }
 
 fun ui(client: SnmpClient) {
@@ -50,7 +54,7 @@ fun ui(client: SnmpClient) {
                 client.community = readLine().toString()
             }
 
-            3 -> printAll(client)
+            3 -> getExample(client)
 
             4 -> {
                 println("Enter an OID")
@@ -74,13 +78,12 @@ fun ui(client: SnmpClient) {
     }
 }
 
-fun printAll(client: SnmpClient) {
-    println(client.getSnmp("1.3.6.1.2.1.1.1.0"))
-    println(client.getSnmp("1.3.6.1.2.1.1.2.0"))
-    println(client.getSnmp("1.3.6.1.2.1.1.3.0"))
-    println(client.getSnmp("1.3.6.1.2.1.1.4.0"))
-    println(client.getSnmp("1.3.6.1.2.1.1.5.0"))
-    println(client.getSnmp("1.3.6.1.2.1.1.6.0"))
-    println(client.getSnmp("1.3.6.1.2.1.1.7.0"))
+fun getExample(client: SnmpClient) {
+    println(client.getSnmp("1.3.6.1.2.1.1.1.0"))    //sysDescr
+    println(client.getSnmp("1.3.6.1.2.1.1.2.0"))    //sysObjectID
+    println(client.getSnmp("1.3.6.1.2.1.1.3.0"))    //sysUpTime
+    println(client.getSnmp("1.3.6.1.2.1.1.4.0"))    //sysContact
+    println(client.getSnmp("1.3.6.1.2.1.1.5.0"))    //sysName
+    println(client.getSnmp("1.3.6.1.2.1.1.6.0"))    //sysLocation
+    println(client.getSnmp("1.3.6.1.2.1.1.7.0"))    //sysServices
 }
-

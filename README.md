@@ -28,3 +28,8 @@ You also have to run `gradle build` or `gradle jar` to create a jar that is loca
 ## Working features
 - SNMP-Get
 - SNMP-Set
+
+## Next steps
+- Proper error messages
+- SNMP-Walk
+- Simple GUI
