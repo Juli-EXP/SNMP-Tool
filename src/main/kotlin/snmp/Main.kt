@@ -3,8 +3,8 @@ package snmp
 
 fun main() {
     val client = SnmpClient()
-    test2(client)
-    //ui(client)
+    //test2(client)
+    ui(client)
 }
 
 fun test1(client: SnmpClient) {
@@ -34,8 +34,8 @@ fun ui(client: SnmpClient) {
     while (!exit) {
         println("-----------------------------------------")
         println("(1) Set ip address (default is localhost)")
-        println("(2) Set community (default is public")
-        println("(3) Get 6 Informations about the PC")
+        println("(2) Set community (default is public)")
+        println("(3) Get 6 Informations about the device")
         println("(4) Get")
         println("(5) Set")
         println("(6) Exit")

@@ -13,6 +13,9 @@ When you open Intellij, gradle should initiate the project automatically. If it 
 IDE without gradle support, you have to run `gradle build` manually.  
 You also have to run `gradle build` or `gradle jar` to create a jar that is located in `/build/libs`.
 
+##Usage
+Enter the number displayed in the console to execute the specified command.
+
 ## Current goals
 - ~~Implement SNMP-Get~~
 - ~~Implement SNMP-Set~~
