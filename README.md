@@ -34,5 +34,6 @@ Enter the number displayed in the console to execute the specified command.
 
 ## Next steps
 - Proper error messages
-- SNMP-Walk
 - Simple GUI
+- SNMP-Walk
+- Network scan
