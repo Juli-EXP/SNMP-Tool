@@ -1,82 +1,99 @@
 package snmp
 
+import org.snmp4j.mp.SnmpConstants
 
 fun main() {
     val client = SnmpClient()
-    testUI1(client)
-    test1(client)
+    ui(client)
 }
 
-fun test1(client: SnmpClient) {
-    println(client.get("1.3.6.1.2.1.1.4.0"))
-    println(client.set("1.3.6.1.2.1.1.4.0", "lampi"))
-    println(client.get("1.3.6.1.2.1.1.4.0"))
-    println(client.set("1.3.6.1.2.1.1.4.0", "Julian Lamprecht"))
+fun ui(client: SnmpClient) {
+    var input: String
+    var option: List<String>
+    var quit = false
 
-    println()
+    println("Type 'help' to get a list of all commands")
+    println("IMPORTANT!")
+    println("MIBs are case sensitive")
 
-    println("6 Infos about ${client.ipAddress}:")
-    getBasicInfos(client)
-}
+    while (!quit) {
+        input = readLine().toString()
+        option = input.split(" ")
 
-fun testUI1(client: SnmpClient) {
-    var option: Int
-    var exit = false
-
-
-    while (!exit) {
-        println("-----------------------------------------")
-        println("(1) Set ip address (default is localhost)")
-        println("(2) Set community (default is public)")
-        println("(3) Get 6 Informations about the device")
-        println("(4) Get")
-        println("(5) Set")
-        println("(6) Exit")
-        println("-----------------------------------------")
-
-        option = readLine()!!.toInt()
-
-        when (option) {
-            1 -> {
-                println("Enter an ip address:")
-                client.ipAddress = readLine().toString()
+        when (option[0]) {
+            "help" -> help()
+            "info" -> println(client.info)
+            "quit" -> quit = true
+            "get" -> {
+                if (checkArgs(option, 2)){
+                    println(client.get(option[1]))
+                }
+            }
+            "set" -> {
+                if (checkArgs(option, 3)){
+                    println(client.set(option[1], option[2]))
+                }
+            }
+            "ip" -> {
+                if (checkArgs(option, 2)){
+                    client.ipAddress = option[1]
+                    println("IP address changed to: ${option[1]}")
+                }
+            }
+            "port" -> {
+                if (checkArgs(option, 2)){
+                    client.port = option[1].toInt()
+                    println("Port changed to: ${option[1]}")
+                }
+            }
+            "version" -> {
+                if (checkArgs(option, 2)){
+                    when(option[1].toInt()){
+                        1 -> client.snmpVersion = SnmpConstants.version1
+                        2 -> client.snmpVersion = SnmpConstants.version2c
+                        3 -> client.snmpVersion = SnmpConstants.version3
+                    }
+                    println("Version changed to: ${option[1]}")
+                }
+            }
+            "community" -> {
+                if (checkArgs(option, 2)){
+                    client.community = option[1]
+                    println("Community changed to: ${option[1]}")
+                }
+            }
+            "load" -> {
+                if (checkArgs(option, 2)){
+                    client.loadMib(option[1])
+                    println("Loaded: ${option[1]}")
+                }
             }
 
-            2 -> {
-                println("Enter a community:")
-                client.community = readLine().toString()
-            }
-
-            3 -> getBasicInfos(client)
-
-            4 -> {
-                println("Enter an OID")
-                val oid = readLine().toString()
-
-                println(client.get(oid))
-            }
-
-            5 -> {
-                println("Enter an OID")
-                val oid = readLine().toString()
-                println("Enter a value")
-                val value = readLine().toString()
-
-                println(client.set(oid, value))
-            }
-
-            6 -> exit = true
+            else -> println("Command not found: ${option[0]}")
         }
-
     }
 }
 
-fun getBasicInfos(client: SnmpClient) {
-    println(client.get("1.3.6.1.2.1.1.1.0"))    //sysDescr
-    println(client.get("1.3.6.1.2.1.1.2.0"))    //sysObjectID
-    println(client.get("1.3.6.1.2.1.1.3.0"))    //sysUpTime
-    println(client.get("1.3.6.1.2.1.1.4.0"))    //sysContact
-    println(client.get("1.3.6.1.2.1.1.5.0"))    //sysName
-    println(client.get("1.3.6.1.2.1.1.6.0"))    //sysLocation
-    println(client.get("1.3.6.1.2.1.1.7.0"))    //sysServices
+
+fun checkArgs(option: List<Any>, min: Int): Boolean {
+    if (option.size >= min) {
+        return true
+    } else
+        println("Error: not enough arguments")
+    return false
 }
+
+fun help() {
+    val format = "%-25s%s%n"
+    System.out.printf(format, "help", "-> Prints the manual")
+    System.out.printf(format, "info", "-> Prints informations about the client")
+    System.out.printf(format, "quit", "-> Quits the program")
+    System.out.printf(format, "get [oid/string]", "-> Performs the get operation")
+    System.out.printf(format, "set [oid/string] [value]", "-> Performs the set operation")
+    System.out.printf(format, "ip [new ip]", "-> Changes the IP address")
+    System.out.printf(format, "port [new port]", "-> Changes the port")
+    System.out.printf(format, "version [version number]", "-> Change the SNMP version")
+    System.out.printf(format, "community [comm. name]", "-> Change the community string")
+    System.out.printf(format, "load [MIB name]", "-> Load a new MIB file (might not work)")
+}
+

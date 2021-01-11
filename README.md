@@ -19,11 +19,10 @@ Enter the number displayed in the console to execute the specified command.
 ## Current goals
 - ~~Implement SNMP-Get~~
 - ~~Implement SNMP-Set~~
-- Implement SNMP-Walk
-- Using different community strings
+- ~~Using different community strings~~
 
 ## Optional goals
-- Implment MIB
+- ~~Implment MIB~~
 - Receive Traps or Informs
 - Scan a whole network
 - Simple user interface
@@ -31,9 +30,9 @@ Enter the number displayed in the console to execute the specified command.
 ## Working features
 - SNMP-Get
 - SNMP-Set
+- Different community strings
+- Simple MIB functionality
 
 ## Next steps
-- Proper error messages
 - Simple GUI
-- SNMP-Walk
 - Network scan

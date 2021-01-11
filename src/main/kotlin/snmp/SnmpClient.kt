@@ -3,16 +3,20 @@ package snmp
 import net.percederberg.mibble.*
 import net.percederberg.mibble.value.ObjectIdentifierValue
 import org.snmp4j.*
+import org.snmp4j.smi.*
 import org.snmp4j.event.ResponseEvent
 import org.snmp4j.mp.SnmpConstants
-import org.snmp4j.smi.*
-import org.snmp4j.smi.VariableBinding
 import org.snmp4j.transport.DefaultUdpTransportMapping
 import java.lang.NumberFormatException
 import java.util.concurrent.TimeoutException
 
 
-
+/**
+ * A simple SNMP client. This class contains functions to get and set SNMP informations
+ * of a set ip address. It also contains basic support for MIB.
+ *
+ * @author Julian Lamprecht
+ */
 class SnmpClient(
     var ipAddress: String = "127.0.0.1",
     var snmpVersion: Int = SnmpConstants.version1,
@@ -20,29 +24,53 @@ class SnmpClient(
 ) {
     //variables/getter/setter-------------------------------------------------------------------------------------------
 
-    //Standard port for SNMP
+    /**
+     * The port for SNMP operations. 161 is the standard for SNMP.
+     */
     var port = 161
 
+    /**
+     * A MIB loader to load different MIB files.
+     */
     private val mibLoader: MibLoader = MibLoader()
 
-    private var mib: Mib = mibLoader.load("RFC1213-MIB")    //for testing
+    /**
+     * The MIB symbols and the corresponding OIDs.
+     */
+    private val mibTable: HashMap<String, String> = HashMap()
 
-    //Last used OID; for getNext
-    private var lastOid: String = ""
-
-    //Infos about the current state
+    /**
+     * Stores basic informations for the SNMP client such as the IP, port, community and
+     * the SNMP version.
+     */
     val info: String
         get() {
+
             return "IP: $ipAddress\n" +
                     "Port: $port\n" +
                     "Community: $community\n" +
-                    "Version: ${snmpVersion + 1}"
+                    "Version: ${when(snmpVersion){
+                        SnmpConstants.version1 -> 1
+                        SnmpConstants.version2c -> 2
+                        SnmpConstants.version3 -> 3
+                        else -> 0
+                    }}"
         }
 
+    //Loads a few MIB files
+    init {
+        fillMibTable(mibLoader.load("RFC1213-MIB"))
+    }
 
     //Snmp-functions----------------------------------------------------------------------------------------------------
 
-    //Get function
+    /**
+     * Executes the SNMP get function.
+     *
+     * @param oid   The oid, either in dotted numerical format or as a MIB string.
+     *
+     * @return      The result of the operation or an error message.
+     */
     fun get(oid: String): String {
         val snmp = Snmp(DefaultUdpTransportMapping())
         snmp.listen()
@@ -51,10 +79,10 @@ class SnmpClient(
 
         val pdu = PDU()
         try {
-            pdu.add(VariableBinding(OID(parseOid(oid))))
+            pdu.add(VariableBinding(OID(parseInput(oid))))
             pdu.type = PDU.GET
         } catch (e: NumberFormatException) {
-            e.printStackTrace()
+            //e.printStackTrace()
             //System.err.println("OID is not valid")
             return "Invalid OID"
         }
@@ -64,16 +92,23 @@ class SnmpClient(
         val result = try {
             executeEvent(event)
         } catch (e: TimeoutException) {
-            e.printStackTrace()
+            //e.printStackTrace()
             "Timeout"
         }
 
         snmp.close()
 
-        return result
+        return parseResult(result)
     }
 
-    //Set function
+    /**
+     * Executes the SNMP set function.
+     *
+     * @param oid   The oid, either in dotted numerical format or as a MIB string.
+     * @param value The value, you want to set.
+     *
+     * @return      The result of the operation or an error message.
+     */
     fun set(oid: String, value: String): String {
         val snmp = Snmp(DefaultUdpTransportMapping())
         snmp.listen()
@@ -82,10 +117,10 @@ class SnmpClient(
 
         val pdu = PDU()
         try {
-            pdu.add(VariableBinding(OID(parseOid(oid)), OctetString(value)))
+            pdu.add(VariableBinding(OID(parseInput(oid)), OctetString(value)))
             pdu.type = PDU.SET
         } catch (e: NumberFormatException) {
-            e.printStackTrace()
+            //e.printStackTrace()
             //System.err.println("OID is not valid")
             return "Invalid OID"
         }
@@ -95,32 +130,94 @@ class SnmpClient(
         val result = try {
             executeEvent(event)
         } catch (e: TimeoutException) {
-            e.printStackTrace()
+            //e.printStackTrace()
             "Timeout, the value wasn't set"
         }
 
         snmp.close()
 
-        return result
+        return parseResult(result)
     }
 
-    //Loads a mib file
+    /**
+     * Loads a new MIB file.
+     *
+     * @param name  The name of the MIB file
+     */
     fun loadMib(name: String) {
-        mib = mibLoader.load(name)
+        fillMibTable(mibLoader.load(name))
     }
 
-    //Checks if value is an oid or a mib symbol and returns an oid
-    private fun parseOid(value: String): String {
-        val mib = mib.getSymbol(value) ?: return value  //Returns value if mib is null
+    /**
+     * DO NOT USE!!!
+     * Unloads a MIB file.
+     *
+     * @param name  The name of the MIB file
+     */
+    private fun unloadMib(name: String) {
+        mibLoader.unload(name)
+    }
+
+    /**
+     * Checks if the value is an oid in dotted numerical format, or if it
+     * is a MIB symbol string. If it is neither, the unchanged input is returned.
+     *
+     * @param value     The input you want to parse
+     * @return          The oid or the unchanged input
+     */
+    private fun parseInput(value: String): String {
+        /*
+        val mib = mibs[0].getSymbol(value) ?: return value  //Returns value if mib is null
 
         val oid = extractOid(mib)
-        if (oid != null)
+        if (oid != null) {
             return oid
+        }
 
         return value
+         */
+        return if (mibTable.containsKey(value)) {
+             mibTable[value]!!
+        } else {
+             value
+        }
     }
 
-    //Returns the
+    /**
+     * Removes everything from the string, except the actual result.
+     * If it is an error message, it will be returned unchanged.
+     *
+     * @param value     The input you want to parse
+     * @return          The result or the unchanged input
+     */
+    private fun parseResult(value: String): String {
+        if (!value.contains("=")) {
+            return value
+        }
+
+        return value.split(" ")[2]  //Returns th eactual result of the SNMP operation
+    }
+
+    /**
+     * Stores all the MIB symbols and the corresponding OIDs.
+     *
+     * @param mib   The MIB of File
+     */
+    private fun fillMibTable(mib: Mib) {
+        for (symbol in mib.allSymbols) {
+            val oid = extractOid(symbol as MibSymbol)
+            if (oid != null) {
+                mibTable[symbol.name] = oid
+            }
+        }
+    }
+
+    /**
+     * Returns the OID af a given MIB symbol.
+     *
+     * @param symbol    The MIB symbol
+     * @return          The OID of the symbol or null
+     */
     private fun extractOid(symbol: MibSymbol): String? {
         if (symbol is MibValueSymbol) {
             val value = symbol.value
@@ -128,10 +225,13 @@ class SnmpClient(
                 return "$value.0"
             }
         }
+
         return null
     }
 
-    //Create target
+    /**
+     * Creates a target.
+     */
     private fun getTarget(): CommunityTarget {
         val target = CommunityTarget()
         target.community = OctetString(community)
@@ -142,7 +242,12 @@ class SnmpClient(
         return target
     }
 
-    //Execute snmp function
+    /**
+     * Executes the SNMP function.
+     *
+     * @param event     The event of the SNMP operation
+     * @return          The result of the SNMP operation
+     */
     @Throws(TimeoutException::class)
     private fun executeEvent(event: ResponseEvent?): String {
 
