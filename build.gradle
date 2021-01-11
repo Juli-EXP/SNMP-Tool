@@ -1,11 +1,14 @@
 plugins {
-    id "java"
     id "org.jetbrains.kotlin.jvm" version "1.4.20"
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
 }
 
 repositories {
@@ -17,24 +20,15 @@ repositories {
     }
 }
 
-jar {
-    manifest {
-        attributes "Main-Class": 'snmp.Main.kt'
-    }
-
-    from {
-        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
-
 dependencies {
-    //The Java version 9 or higher. For now i'll use Java 8
-    //implementation "org.snmp4j:snmp4j:3.4.4"
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    implementation "no.tornado:tornadofx:1.7.20"
+    //implementation "no.tornado:tornadofx:1.7.20"
 
+    //This is for Java version 9 or higher. For now i'll use Java 8
+    //implementation "org.snmp4j:snmp4j:3.4.4"
     implementation "org.snmp4j:snmp4j:2.8.6"
     implementation "net.percederberg.mibble:mibble:2.9.3"
+    implementation "net.percederberg.mibble:mibble-mibs:2.9.3"
 
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.0"

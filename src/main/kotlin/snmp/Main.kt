@@ -3,30 +3,23 @@ package snmp
 
 fun main() {
     val client = SnmpClient()
-    //test2(client)
-    ui(client)
+    testUI1(client)
+    test1(client)
 }
 
 fun test1(client: SnmpClient) {
-    println(client.getSnmp("1.3.6.1.2.1.1.4.0"))
-    println(client.setSnmp("1.3.6.1.2.1.1.4.0", "lampi"))
-    println(client.getSnmp("1.3.6.1.2.1.1.4.0"))
-    println(client.setSnmp("1.3.6.1.2.1.1.4.0", "Julian Lamprecht"))
+    println(client.get("1.3.6.1.2.1.1.4.0"))
+    println(client.set("1.3.6.1.2.1.1.4.0", "lampi"))
+    println(client.get("1.3.6.1.2.1.1.4.0"))
+    println(client.set("1.3.6.1.2.1.1.4.0", "Julian Lamprecht"))
 
     println()
 
     println("6 Infos about ${client.ipAddress}:")
-    getExample(client)
+    getBasicInfos(client)
 }
 
-fun test2(client: SnmpClient) {
-    client.ipAddress = "192.168.1.1"
-    println(client.getSnmp("1.3.6.1.2.1.1.1.0"))
-    client.ipAddress = "192.168.1.2"
-    println(client.getSnmp("1.3.6.1.2.1.1.1.0"))
-}
-
-fun ui(client: SnmpClient) {
+fun testUI1(client: SnmpClient) {
     var option: Int
     var exit = false
 
@@ -54,13 +47,13 @@ fun ui(client: SnmpClient) {
                 client.community = readLine().toString()
             }
 
-            3 -> getExample(client)
+            3 -> getBasicInfos(client)
 
             4 -> {
                 println("Enter an OID")
                 val oid = readLine().toString()
 
-                println(client.getSnmp(oid))
+                println(client.get(oid))
             }
 
             5 -> {
@@ -69,7 +62,7 @@ fun ui(client: SnmpClient) {
                 println("Enter a value")
                 val value = readLine().toString()
 
-                println(client.setSnmp(oid, value))
+                println(client.set(oid, value))
             }
 
             6 -> exit = true
@@ -78,12 +71,12 @@ fun ui(client: SnmpClient) {
     }
 }
 
-fun getExample(client: SnmpClient) {
-    println(client.getSnmp("1.3.6.1.2.1.1.1.0"))    //sysDescr
-    println(client.getSnmp("1.3.6.1.2.1.1.2.0"))    //sysObjectID
-    println(client.getSnmp("1.3.6.1.2.1.1.3.0"))    //sysUpTime
-    println(client.getSnmp("1.3.6.1.2.1.1.4.0"))    //sysContact
-    println(client.getSnmp("1.3.6.1.2.1.1.5.0"))    //sysName
-    println(client.getSnmp("1.3.6.1.2.1.1.6.0"))    //sysLocation
-    println(client.getSnmp("1.3.6.1.2.1.1.7.0"))    //sysServices
+fun getBasicInfos(client: SnmpClient) {
+    println(client.get("1.3.6.1.2.1.1.1.0"))    //sysDescr
+    println(client.get("1.3.6.1.2.1.1.2.0"))    //sysObjectID
+    println(client.get("1.3.6.1.2.1.1.3.0"))    //sysUpTime
+    println(client.get("1.3.6.1.2.1.1.4.0"))    //sysContact
+    println(client.get("1.3.6.1.2.1.1.5.0"))    //sysName
+    println(client.get("1.3.6.1.2.1.1.6.0"))    //sysLocation
+    println(client.get("1.3.6.1.2.1.1.7.0"))    //sysServices
 }
