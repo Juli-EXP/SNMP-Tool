@@ -3,8 +3,8 @@ package snmp
 
 fun main() {
     val client = SnmpClient()
-    //test2(client)
-    ui(client)
+    testUI1(client)
+    test1(client)
 }
 
 fun test1(client: SnmpClient) {
@@ -19,12 +19,7 @@ fun test1(client: SnmpClient) {
     getBasicInfos(client)
 }
 
-fun test2(client: SnmpClient) {
-    client.ipAddress = "localhost"
-    client.walk("1.3.6.1.2.1.1.1.0")
-}
-
-fun ui(client: SnmpClient) {
+fun testUI1(client: SnmpClient) {
     var option: Int
     var exit = false
 

@@ -1,19 +1,16 @@
 package snmp
 
-import org.snmp4j.CommunityTarget
-import org.snmp4j.PDU
-import org.snmp4j.Snmp
+import net.percederberg.mibble.*
+import net.percederberg.mibble.value.ObjectIdentifierValue
+import org.snmp4j.*
 import org.snmp4j.event.ResponseEvent
 import org.snmp4j.mp.SnmpConstants
 import org.snmp4j.smi.*
+import org.snmp4j.smi.VariableBinding
 import org.snmp4j.transport.DefaultUdpTransportMapping
-import org.snmp4j.util.DefaultPDUFactory
-import org.snmp4j.util.TreeEvent
-import org.snmp4j.util.TreeUtils
 import java.lang.NumberFormatException
 import java.util.concurrent.TimeoutException
-import kotlin.collections.ArrayList
-import org.snmp4j.smi.VariableBinding
+
 
 
 class SnmpClient(
@@ -26,16 +23,22 @@ class SnmpClient(
     //Standard port for SNMP
     var port = 161
 
+    private val mibLoader: MibLoader = MibLoader()
+
+    private var mib: Mib = mibLoader.load("RFC1213-MIB")    //for testing
+
     //Last used OID; for getNext
     private var lastOid: String = ""
 
-    //Simple function to print all infos about the class
-    fun getInfo() {
-        println("IP: $ipAddress")
-        println("Port: $port")
-        println("Community: $community")
-        println("Version: ${snmpVersion + 1}")
-    }
+    //Infos about the current state
+    val info: String
+        get() {
+            return "IP: $ipAddress\n" +
+                    "Port: $port\n" +
+                    "Community: $community\n" +
+                    "Version: ${snmpVersion + 1}"
+        }
+
 
     //Snmp-functions----------------------------------------------------------------------------------------------------
 
@@ -48,10 +51,11 @@ class SnmpClient(
 
         val pdu = PDU()
         try {
-            pdu.add(VariableBinding(OID(oid)))
+            pdu.add(VariableBinding(OID(parseOid(oid))))
             pdu.type = PDU.GET
         } catch (e: NumberFormatException) {
-            System.err.println("OID is not valid")
+            e.printStackTrace()
+            //System.err.println("OID is not valid")
             return "Invalid OID"
         }
 
@@ -78,10 +82,11 @@ class SnmpClient(
 
         val pdu = PDU()
         try {
-            pdu.add(VariableBinding(OID(oid), OctetString(value)))
+            pdu.add(VariableBinding(OID(parseOid(oid)), OctetString(value)))
             pdu.type = PDU.SET
         } catch (e: NumberFormatException) {
-            System.err.println("OID is not valid")
+            e.printStackTrace()
+            //System.err.println("OID is not valid")
             return "Invalid OID"
         }
 
@@ -99,56 +104,32 @@ class SnmpClient(
         return result
     }
 
-    //Walk function, doesn't work at the moment
-    fun walk(startOid: String): ArrayList<String>? {
-        val snmp = Snmp(DefaultUdpTransportMapping())
-        snmp.listen()
-
-        val target = getTarget()
-
-        val results = ArrayList<String>()
-
-        val oid: OID
-        try {
-            oid = OID(startOid)
-        } catch (e: NumberFormatException) {
-            System.err.println("OID is not valid")
-            return null
-        }
-
-        val treeUtils = TreeUtils(snmp, DefaultPDUFactory())
-        val events = treeUtils.getSubtree(target, oid)
-
-        if (events == null || events.size == 0) {
-            System.err.println("No results were found")
-            return null
-        }
-
-        for (event: TreeEvent in events) {
-            print("le")
-
-            val varBindings = event.variableBindings
-            if (varBindings == null || varBindings.isEmpty()) {
-                continue
-            }
-
-            for (varBinding: VariableBinding? in varBindings) {
-                if (varBinding == null) {
-                    continue
-                }
-                println(
-                    varBinding.oid.toString() +
-                            " : " +
-                            varBinding.variable.syntaxString +
-                            " : " +
-                            varBinding.variable
-                )
-            }
-        }
-
-        return results
+    //Loads a mib file
+    fun loadMib(name: String) {
+        mib = mibLoader.load(name)
     }
 
+    //Checks if value is an oid or a mib symbol and returns an oid
+    private fun parseOid(value: String): String {
+        val mib = mib.getSymbol(value) ?: return value  //Returns value if mib is null
+
+        val oid = extractOid(mib)
+        if (oid != null)
+            return oid
+
+        return value
+    }
+
+    //Returns the
+    private fun extractOid(symbol: MibSymbol): String? {
+        if (symbol is MibValueSymbol) {
+            val value = symbol.value
+            if (value is ObjectIdentifierValue) {
+                return "$value.0"
+            }
+        }
+        return null
+    }
 
     //Create target
     private fun getTarget(): CommunityTarget {
