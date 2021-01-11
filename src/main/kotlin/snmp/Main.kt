@@ -25,30 +25,36 @@ fun ui(client: SnmpClient) {
             "info" -> println(client.info)
             "quit" -> quit = true
             "get" -> {
-                if (checkArgs(option, 2)){
+                if (checkArgs(option, 2)) {
                     println(client.get(option[1]))
                 }
             }
             "set" -> {
-                if (checkArgs(option, 3)){
+                if (checkArgs(option, 3)) {
                     println(client.set(option[1], option[2]))
                 }
             }
+            "scan" -> {
+                if (checkArgs(option, 2)) {
+                    println("Scanning network, this might take a while")
+                    client.scanNetwork(option[1]).forEach { (key, value) -> println("$key: $value") }
+                }
+            }
             "ip" -> {
-                if (checkArgs(option, 2)){
+                if (checkArgs(option, 2)) {
                     client.ipAddress = option[1]
                     println("IP address changed to: ${option[1]}")
                 }
             }
             "port" -> {
-                if (checkArgs(option, 2)){
+                if (checkArgs(option, 2)) {
                     client.port = option[1].toInt()
                     println("Port changed to: ${option[1]}")
                 }
             }
             "version" -> {
-                if (checkArgs(option, 2)){
-                    when(option[1].toInt()){
+                if (checkArgs(option, 2)) {
+                    when (option[1].toInt()) {
                         1 -> client.snmpVersion = SnmpConstants.version1
                         2 -> client.snmpVersion = SnmpConstants.version2c
                         3 -> client.snmpVersion = SnmpConstants.version3
@@ -57,13 +63,13 @@ fun ui(client: SnmpClient) {
                 }
             }
             "community" -> {
-                if (checkArgs(option, 2)){
+                if (checkArgs(option, 2)) {
                     client.community = option[1]
                     println("Community changed to: ${option[1]}")
                 }
             }
             "load" -> {
-                if (checkArgs(option, 2)){
+                if (checkArgs(option, 2)) {
                     println("Trying to load MIB: ${option[1]}")
                     client.loadMib(option[1])
                 }
@@ -90,6 +96,8 @@ fun help() {
     System.out.printf(format, "quit", "-> Quits the program")
     System.out.printf(format, "get [oid/string]", "-> Performs the get operation")
     System.out.printf(format, "set [oid/string] [value]", "-> Performs the set operation")
+    System.out.printf(format, "scan [network]", "-> Scans the whole network.")
+    System.out.printf(format, "", "'-> Only type in the ip and not the subnet. Only works with /24 networks")
     System.out.printf(format, "ip [new ip]", "-> Changes the IP address")
     System.out.printf(format, "port [new port]", "-> Changes the port")
     System.out.printf(format, "version [version number]", "-> Change the SNMP version")

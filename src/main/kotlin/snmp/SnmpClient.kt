@@ -9,7 +9,9 @@ import org.snmp4j.mp.SnmpConstants
 import org.snmp4j.transport.DefaultUdpTransportMapping
 import java.io.FileNotFoundException
 import java.lang.NumberFormatException
+import java.net.InetAddress
 import java.util.concurrent.TimeoutException
+import kotlin.math.pow
 
 
 /**
@@ -41,21 +43,27 @@ class SnmpClient(
     private val mibTable: HashMap<String, String> = HashMap()
 
     /**
+     * Indicates if the last operation was successul
+     */
+    private var lastOperationSuccessful = false
+
+    /**
      * Stores basic informations for the SNMP client such as the IP, port, community and
      * the SNMP version.
      */
     val info: String
         get() {
-
             return "IP: $ipAddress\n" +
                     "Port: $port\n" +
                     "Community: $community\n" +
-                    "Version: ${when(snmpVersion){
-                        SnmpConstants.version1 -> 1
-                        SnmpConstants.version2c -> 2
-                        SnmpConstants.version3 -> 3
-                        else -> 0
-                    }}"
+                    "Version: ${
+                        when (snmpVersion) {
+                            SnmpConstants.version1 -> 1
+                            SnmpConstants.version2c -> 2
+                            SnmpConstants.version3 -> 3
+                            else -> 0
+                        }
+                    }"
         }
 
     //Loads a few MIB files
@@ -85,7 +93,7 @@ class SnmpClient(
             pdu.type = PDU.GET
         } catch (e: NumberFormatException) {
             //e.printStackTrace()
-            //System.err.println("OID is not valid")
+            lastOperationSuccessful = false
             return "Invalid OID"
         }
 
@@ -123,7 +131,7 @@ class SnmpClient(
             pdu.type = PDU.SET
         } catch (e: NumberFormatException) {
             //e.printStackTrace()
-            //System.err.println("OID is not valid")
+            lastOperationSuccessful = false
             return "Invalid OID"
         }
 
@@ -142,21 +150,49 @@ class SnmpClient(
     }
 
     /**
+     * Scans a whole network (Only works with /24 at the moment).
+     *
+     * @param network   The network you want to scan
+     * @return          A HashMap of all active devices
+     */
+    fun scanNetwork(network: String): HashMap<InetAddress, Boolean> {
+        val devices = HashMap<InetAddress, Boolean>()
+        val ipArray: ByteArray = InetAddress.getByName(network).address
+        val temp = ipAddress
+
+        //Maybe add threads to make this faster
+        for (i in 1..254) {
+            ipArray[3] = i.toByte()
+            val ip = InetAddress.getByAddress(ipArray)
+            println("Scanning: $ip")
+
+            if (ip.isReachable(100)) {
+                ipAddress = ip.toString()
+                get("sysName")
+                devices[ip] = lastOperationSuccessful
+            }
+        }
+
+        ipAddress = temp
+
+        return devices
+    }
+
+    /**
      * Loads a new MIB file.
      *
      * @param name  The name of the MIB file
      */
     fun loadMib(name: String) {
-        try{
+        try {
             val mib = mibLoader.load(name)
             fillMibTable(mib)
-        }catch (e: FileNotFoundException){
+        } catch (e: FileNotFoundException) {
             println(e.message)
         }
     }
 
     /**
-     * DO NOT USE!!!
      * Unloads a MIB file.
      *
      * @param name  The name of the MIB file
@@ -173,20 +209,10 @@ class SnmpClient(
      * @return          The oid or the unchanged input
      */
     private fun parseInput(value: String): String {
-        /*
-        val mib = mibs[0].getSymbol(value) ?: return value  //Returns value if mib is null
-
-        val oid = extractOid(mib)
-        if (oid != null) {
-            return oid
-        }
-
-        return value
-         */
         return if (mibTable.containsKey(value)) {
-             mibTable[value]!!
+            mibTable[value]!!
         } else {
-             value
+            value
         }
     }
 
@@ -258,19 +284,24 @@ class SnmpClient(
     @Throws(TimeoutException::class)
     private fun executeEvent(event: ResponseEvent?): String {
 
-        return if (event != null && event.response != null) {
+        if (event != null && event.response != null) {
             val pduResponse = event.response
 
             //returns the result of the following block if event != null
-            if (event.response.errorStatusText === "Success") {
+            return if (event.response.errorStatusText === "Success") {
+                lastOperationSuccessful = true
+
                 pduResponse.variableBindings.firstElement().toString()
             } else {
                 System.err.println(event.response.errorStatusText)
+                lastOperationSuccessful = false
+
                 pduResponse.errorStatusText
             }
 
         } else {
             //returns timeout if event == null
+            lastOperationSuccessful = false
             throw TimeoutException("The request timed out")
         }
     }
