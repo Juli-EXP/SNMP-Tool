@@ -1,4 +1,6 @@
-package snmp
+package old
+
+import snmp.SnmpClient
 
 fun test1(client: SnmpClient) {
     println(client.get("1.3.6.1.2.1.1.4.0"))

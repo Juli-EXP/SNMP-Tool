@@ -7,6 +7,7 @@ import org.snmp4j.smi.*
 import org.snmp4j.event.ResponseEvent
 import org.snmp4j.mp.SnmpConstants
 import org.snmp4j.transport.DefaultUdpTransportMapping
+import java.io.FileNotFoundException
 import java.lang.NumberFormatException
 import java.util.concurrent.TimeoutException
 
@@ -60,6 +61,7 @@ class SnmpClient(
     //Loads a few MIB files
     init {
         fillMibTable(mibLoader.load("RFC1213-MIB"))
+        fillMibTable(mibLoader.load("HOST-RESOURCES-MIB"))
     }
 
     //Snmp-functions----------------------------------------------------------------------------------------------------
@@ -145,7 +147,12 @@ class SnmpClient(
      * @param name  The name of the MIB file
      */
     fun loadMib(name: String) {
-        fillMibTable(mibLoader.load(name))
+        try{
+            val mib = mibLoader.load(name)
+            fillMibTable(mib)
+        }catch (e: FileNotFoundException){
+            println(e.message)
+        }
     }
 
     /**

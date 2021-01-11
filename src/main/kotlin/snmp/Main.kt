@@ -14,7 +14,7 @@ fun ui(client: SnmpClient) {
 
     println("Type 'help' to get a list of all commands")
     println("IMPORTANT!")
-    println("MIBs are case sensitive")
+    println("MIB symbols are case sensitive")
 
     while (!quit) {
         input = readLine().toString()
@@ -64,8 +64,8 @@ fun ui(client: SnmpClient) {
             }
             "load" -> {
                 if (checkArgs(option, 2)){
+                    println("Trying to load MIB: ${option[1]}")
                     client.loadMib(option[1])
-                    println("Loaded: ${option[1]}")
                 }
             }
 
