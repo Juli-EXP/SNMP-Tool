@@ -1,5 +1,7 @@
 package snmp
 
+import ext.toInetAddress
+import ext.toInt
 import net.percederberg.mibble.*
 import net.percederberg.mibble.value.ObjectIdentifierValue
 import org.snmp4j.*
@@ -157,19 +159,26 @@ class SnmpClient(
      */
     fun scanNetwork(network: String): HashMap<InetAddress, Boolean> {
         val devices = HashMap<InetAddress, Boolean>()
-        val ipArray: ByteArray = InetAddress.getByName(network).address
+        val fullAddress = network.split("/")
+
+        if (fullAddress.size < 2) {
+            println("Invalid network")
+            return devices
+        }
+
+        //All addresses in a subnet minus network and broadcast
+        val addressAmount = 2.0.pow(32 - fullAddress[1].toInt()).toInt() - 2
+
         val temp = ipAddress
 
-        //Maybe add threads to make this faster
-        for (i in 1..254) {
-            ipArray[3] = i.toByte()
-            val ip = InetAddress.getByAddress(ipArray)
-            println("Scanning: $ip")
+        for (i in 1..addressAmount) {
+            val ip: Int = InetAddress.getByName(fullAddress[0]).toInt() + i
+            println("Scanning: ${ip.toInetAddress()}")
 
-            if (ip.isReachable(100)) {
-                ipAddress = ip.toString()
+            if (ip.toInetAddress().isReachable(100)) {
+                ipAddress = ip.toInetAddress().toString()
                 get("sysName")
-                devices[ip] = lastOperationSuccessful
+                devices[ip.toInetAddress()] = lastOperationSuccessful
             }
         }
 
