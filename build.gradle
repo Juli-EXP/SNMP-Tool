@@ -22,7 +22,7 @@ repositories {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.20"
-    implementation "no.tornado:tornadofx:1.7.20"
+    //implementation "no.tornado:tornadofx:1.7.20"
 
     //This is for Java version 9 or higher. For now i'll use Java 8
     //implementation "org.snmp4j:snmp4j:3.4.4"

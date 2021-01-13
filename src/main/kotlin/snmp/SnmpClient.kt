@@ -17,7 +17,7 @@ import kotlin.math.pow
 
 
 /**
- * A simple SNMP client. This class contains functions to get and set SNMP informations
+ * A simple SNMP client. This class contains functions to get and set SNMP information
  * of a set ip address. It also contains basic support for MIB.
  *
  * @author Julian Lamprecht
@@ -45,12 +45,12 @@ class SnmpClient(
     private val mibTable: HashMap<String, String> = HashMap()
 
     /**
-     * Indicates if the last operation was successul
+     * Indicates if the last operation was successful
      */
     private var lastOperationSuccessful = false
 
     /**
-     * Stores basic informations for the SNMP client such as the IP, port, community and
+     * Stores basic information for the SNMP client such as the IP, port, community and
      * the SNMP version.
      */
     val info: String
@@ -237,7 +237,7 @@ class SnmpClient(
             return value
         }
 
-        return value.split(" ")[2]  //Returns th eactual result of the SNMP operation
+        return value.split(" ")[2]  //Returns th actual result of the SNMP operation
     }
 
     /**
